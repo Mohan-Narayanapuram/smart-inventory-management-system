@@ -12,7 +12,7 @@
 
 ## What Was Built
 
-### 1. Complete Backend System ✓
+### 1. Complete Backend System
 
 #### Authentication & Authorization (auth.py)
 - User login with password hashing
@@ -40,9 +40,9 @@
 - Expense list viewing
 
 #### Financial Reporting (reports.py)
-- [x] Admin-only financial dashboard
-- [x] Revenue calculation from sales
-- [x] COGS calculation (quantity × cost_price)
+- Admin-only financial dashboard
+- Revenue calculation from sales
+-COGS calculation (quantity × cost_price)
 - [x] Expense summarization
 - [x] Profit/loss calculation
 - [x] Profit margin calculations (gross and net)
