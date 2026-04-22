@@ -1,6 +1,6 @@
 # Smart Inventory Management System - Architecture & Design Document
 
-## 📋 Table of Contents
+## Table of Contents
 1. System Architecture
 2. Role-Based Access Control
 3. Database Design
