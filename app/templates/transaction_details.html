@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Transaction Details</h1>
+    <p>Full audit log of all stock purchases and sales.</p>
+  </div>
+  <a href="{{ url_for('reports.financial_summary') }}" class="btn btn-secondary">← Back to Reports</a>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="{{ url_for('reports.transaction_details') }}">
+  <div class="card" style="margin-bottom:20px;padding:16px 20px">
+    <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+      <div class="form-group" style="min-width:150px">
+        <label>From Date</label>
+        <input type="date" name="date_from" value="{{ date_from }}" />
+      </div>
+      <div class="form-group" style="min-width:150px">
+        <label>To Date</label>
+        <input type="date" name="date_to" value="{{ date_to }}" />
+      </div>
+      <div class="form-group" style="min-width:150px">
+        <label>Type</label>
+        <select name="txn_type">
+          <option value="">All Types</option>
+          <option value="sale"     {% if txn_type == 'sale'     %}selected{% endif %}>Sales Only</option>
+          <option value="purchase" {% if txn_type == 'purchase' %}selected{% endif %}>Purchases Only</option>
+        </select>
+      </div>
+      <div class="form-group" style="min-width:180px">
+        <label>Search Product</label>
+        <input type="text" name="search" value="{{ search }}" placeholder="e.g. Cement, Steel…" />
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a href="{{ url_for('reports.transaction_details') }}" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+    {% if date_from or date_to or txn_type or search %}
+    <div style="margin-top:10px;font-size:12.5px;color:var(--color-text-muted)">
+      Active filters:
+      {% if date_from %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px;margin-right:4px">From: {{ date_from }}</span>{% endif %}
+      {% if date_to %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px;margin-right:4px">To: {{ date_to }}</span>{% endif %}
+      {% if txn_type %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px;margin-right:4px">Type: {{ txn_type | capitalize }}</span>{% endif %}
+      {% if search %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px">Product: "{{ search }}"</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Transactions Table -->
+<div class="table-wrapper">
+  <div style="padding:16px 16px 0;display:flex;justify-content:space-between;align-items:center">
+    <div class="section-title" style="margin-bottom:12px">All Transactions</div>
+    <span style="font-size:12.5px;color:var(--color-text-muted);padding-bottom:12px">
+      {{ transactions | length }} record{{ 's' if transactions | length != 1 else '' }}
+    </span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Product</th>
+        <th>Type</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+        <th>User</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for txn in transactions %}
+      <tr>
+        <td style="color:var(--color-text-muted)">{{ txn.id }}</td>
+        <td>{{ txn.product }}</td>
+        <td>
+          {% if txn.type == 'SALE' %}
+            <span class="status-badge" style="background:var(--color-danger-bg);color:var(--color-danger-text)">Sale</span>
+          {% else %}
+            <span class="status-badge" style="background:var(--stock-green-bg);color:var(--stock-green)">Purchase</span>
+          {% endif %}
+        </td>
+        <td style="font-variant-numeric:tabular-nums">{{ txn.quantity }}</td>
+        <td style="font-variant-numeric:tabular-nums">₹{{ "{:,.2f}".format(txn.unit_price) }}</td>
+        <td style="font-variant-numeric:tabular-nums;font-weight:600">₹{{ "{:,.2f}".format(txn.total) }}</td>
+        <td style="color:var(--color-text-muted)">{{ txn.user }}</td>
+        <td style="color:var(--color-text-muted);font-size:12.5px">
+          {{ txn.timestamp.strftime('%d %b %Y, %I:%M %p') if txn.timestamp else '—' }}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--color-text-muted)">
+          No transactions found for selected filters.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

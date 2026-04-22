@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Expense Entry</h1>
+    <p>Record and track business expenses.</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:20px;align-items:start">
+
+  <!-- Add Expense Form -->
+  <div class="card">
+    <div class="section-title" style="margin-bottom:16px">Add New Expense</div>
+    <form method="POST" action="{{ url_for('expenses.create_expense') }}">
+      <div class="form-group" style="margin-bottom:13px">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date"
+               value="{{ today_date if today_date else '' }}"/>
+      </div>
+      <div class="form-group" style="margin-bottom:13px">
+        <label for="description">Expense Type</label>
+        <input type="text" id="description" name="description"
+               placeholder="e.g., Transportation, Utilities"/>
+      </div>
+      <div class="form-group" style="margin-bottom:13px">
+        <label for="amount">Amount (₹)</label>
+        <input type="number" id="amount" name="amount" step="0.01" min="0.01"
+               placeholder="0.00" required/>
+      </div>
+      <div class="form-group" style="margin-bottom:18px">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" placeholder="Add description or notes"
+                  style="min-height:70px"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Add Expense</button>
+    </form>
+  </div>
+
+  <!-- Right Panel -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <!-- Total Card -->
+    <div class="card">
+      <div style="font-size:12.5px;color:var(--color-text-muted);margin-bottom:4px">Total Expenses</div>
+      <div style="font-size:26px;font-weight:700">
+        ₹{{ "{:,.0f}".format(total_expenses) if total_expenses else '0' }}
+      </div>
+    </div>
+
+    <!-- Recent Expenses Table -->
+    <div class="table-wrapper">
+      <div style="padding:16px 16px 0">
+        <div class="section-title">Recent Expenses</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in expenses %}
+          <tr>
+            <td>{{ expense.date.strftime('%d/%m/%Y') if expense.date else '—' }}</td>
+            <td>{{ expense.description or '—' }}</td>
+            <td>₹{{ "{:,.0f}".format(expense.amount) }}</td>
+            <td style="color:var(--color-text-muted)">{{ expense.description or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" style="text-align:center;padding:30px;color:var(--color-text-muted)">
+              No expenses recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

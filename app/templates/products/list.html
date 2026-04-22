@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Product &amp; Stock Management</h1>
+    <p>Manage your products and inventory levels.</p>
+  </div>
+  <button class="btn btn-primary" onclick="toggleProductForm()">+ Add Product</button>
+</div>
+
+<!-- Add New Product Form -->
+<div class="card" id="addProductForm" style="display:none; margin-bottom:24px">
+  <div class="section-title" style="margin-bottom:18px">Add New Product</div>
+  <form method="POST" action="{{ url_for('products.create_product') }}">
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" name="name" required/>
+      </div>
+      <div class="form-group">
+        <label for="sku">Category / SKU</label>
+        <input type="text" id="sku" name="sku" placeholder="e.g., Cement, Steel, Timber"/>
+      </div>
+      <div class="form-group">
+        <label for="cost_price">Buying Price (₹)</label>
+        <input type="number" id="cost_price" name="cost_price" step="0.01" min="0" value="0"/>
+      </div>
+      <div class="form-group">
+        <label for="unit_price">Selling Price (₹)</label>
+        <input type="number" id="unit_price" name="unit_price" step="0.01" min="0" value="0"/>
+      </div>
+      <div class="form-group">
+        <label for="stock">Stock Quantity</label>
+        <input type="number" id="stock" name="stock" min="0" value="0"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add Product</button>
+      <button type="button" class="btn btn-secondary no-loading" onclick="toggleProductForm()">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Products Table -->
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Category</th>
+        <th>Buying Price</th>
+        <th>Selling Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.sku or '—' }}</td>
+        <td>₹{{ product.cost_price | int }}</td>
+        <td>₹{{ product.unit_price | int }}</td>
+        <td>
+          {% set stock = product.stock %}
+          {% if stock >= 500 %}
+            <span class="stock-badge stock-high">{{ stock }}</span>
+          {% elif stock >= 150 %}
+            <span class="stock-badge stock-med">{{ stock }}</span>
+          {% else %}
+            <span class="stock-badge stock-low">{{ stock }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="action-icons">
+            <a href="{{ url_for('products.edit_product', product_id=product.id) }}"
+               class="action-btn" title="Edit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </a>
+            <a href="{{ url_for('products.update_stock', product_id=product.id) }}"
+               class="action-btn" title="Update Stock" style="color:var(--color-primary)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="17 1 21 5 17 9"/>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <polyline points="7 23 3 19 7 15"/>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+              </svg>
+            </a>
+            {% if current_user.role == 'admin' %}
+            <form method="POST"
+                  action="{{ url_for('products.delete_product', product_id=product.id) }}"
+                  id="delProd{{ product.id }}">
+              <button type="button" class="action-btn delete" title="Delete"
+                      onclick="confirmDelete(document.getElementById('delProd{{ product.id }}'), '{{ product.name }}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:40px;color:var(--color-text-muted)">
+          No products yet. Click "+ Add Product" to get started.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function toggleProductForm() {
+    var form = document.getElementById('addProductForm');
+    var visible = form.style.display !== 'none';
+    form.style.display = visible ? 'none' : 'block';
+    if (!visible) {
+      form.style.opacity = '0';
+      form.style.transform = 'translateY(-8px)';
+      requestAnimationFrame(function() {
+        form.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+        form.style.opacity = '1';
+        form.style.transform = 'translateY(0)';
+      });
+    }
+  }
+</script>
+
+{% endblock %}

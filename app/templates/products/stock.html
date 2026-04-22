@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Update Stock</h1>
+    <p>Record a purchase or sale for <strong>{{ product.name }}</strong></p>
+  </div>
+</div>
+
+<div class="card" style="max-width:480px">
+  <div style="margin-bottom:18px;padding:14px 16px;background:#f9fafb;border-radius:8px;border:1px solid var(--color-border)">
+    <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:2px">Current Stock</div>
+    <div style="font-size:20px;font-weight:700">{{ product.stock }} units</div>
+  </div>
+
+  <form method="POST">
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Transaction Type</label>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+          <input type="radio" name="txn_type" value="sale" checked/> Sale (Decrease Stock)
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer">
+          <input type="radio" name="txn_type" value="purchase"/> Purchase (Increase Stock)
+        </label>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label for="quantity">Quantity</label>
+      <input type="number" id="quantity" name="quantity" min="1" value="1" required/>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label for="unit_price">Unit Price (₹)</label>
+      <input type="number" id="unit_price" name="unit_price" step="0.01" min="0"
+             value="{{ product.unit_price }}"/>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Record Transaction</button>
+      <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

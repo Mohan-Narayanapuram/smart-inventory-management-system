@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Expense Summary</h1>
+    <p>Breakdown of all operating expenses by category.</p>
+  </div>
+  <a href="{{ url_for('reports.financial_summary') }}" class="btn btn-secondary">← Back to Reports</a>
+</div>
+
+<!-- Filters -->
+<form method="GET" action="{{ url_for('reports.expense_summary') }}">
+  <div class="card" style="margin-bottom:20px;padding:16px 20px">
+    <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+      <div class="form-group" style="min-width:150px">
+        <label>From Date</label>
+        <input type="date" name="date_from" value="{{ date_from }}" />
+      </div>
+      <div class="form-group" style="min-width:150px">
+        <label>To Date</label>
+        <input type="date" name="date_to" value="{{ date_to }}" />
+      </div>
+      <div class="form-group" style="min-width:180px">
+        <label>Category</label>
+        <select name="category">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;padding-bottom:1px">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a href="{{ url_for('reports.expense_summary') }}" class="btn btn-secondary">Reset</a>
+      </div>
+    </div>
+    {% if date_from or date_to or category %}
+    <div style="margin-top:10px;font-size:12.5px;color:var(--color-text-muted)">
+      Active filters:
+      {% if date_from %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px;margin-right:4px">From: {{ date_from }}</span>{% endif %}
+      {% if date_to %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px;margin-right:4px">To: {{ date_to }}</span>{% endif %}
+      {% if category %}<span style="background:var(--color-border);padding:2px 8px;border-radius:4px">Category: {{ category }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Total Card -->
+<div class="kpi-card" style="margin-bottom:24px;max-width:280px">
+  <div class="kpi-label">Total Expenses</div>
+  <div class="kpi-value">₹{{ "{:,.2f}".format(total_expenses) }}</div>
+</div>
+
+<!-- Category Breakdown -->
+<div class="card" style="margin-bottom:24px">
+  <div class="section-title" style="margin-bottom:18px">Expense Breakdown by Category</div>
+  {% for row in expense_summary %}
+  <div class="progress-bar-row">
+    <div class="progress-label">
+      <span>{{ row.description or 'Uncategorized' }}</span>
+      <span>
+        ₹{{ "{:,.0f}".format(row.total | float) }}
+        ({{ (((row.total | float) / total_expenses * 100) | int) if total_expenses > 0 else 0 }}%)
+      </span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill"
+           style="width:{{ (((row.total | float) / total_expenses * 100) | int) if total_expenses > 0 else 0 }}%">
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p style="color:var(--color-text-muted);font-size:13.5px">No expense data for selected filters.</p>
+  {% endfor %}
+</div>
+
+<!-- Expenses Table -->
+<div class="table-wrapper">
+  <div style="padding:16px 16px 0;display:flex;justify-content:space-between;align-items:center">
+    <div class="section-title" style="margin-bottom:12px">All Expenses</div>
+    <span style="font-size:12.5px;color:var(--color-text-muted);padding-bottom:12px">
+      {{ all_expenses | length }} record{{ 's' if all_expenses | length != 1 else '' }}
+    </span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Recorded By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for expense in all_expenses %}
+      <tr>
+        <td>{{ expense.date.strftime('%d %b %Y') if expense.date else '—' }}</td>
+        <td>{{ expense.description or '—' }}</td>
+        <td>₹{{ "{:,.2f}".format(expense.amount | float) }}</td>
+        <td style="color:var(--color-text-muted)">
+          {{ expense.created_by_user.username if expense.created_by_user else '—' }}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:40px;color:var(--color-text-muted)">
+          No expenses found for selected filters.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

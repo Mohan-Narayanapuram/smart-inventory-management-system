@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Inventory – Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function() {
+      var saved = localStorage.getItem('theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+
+  {% if current_user.is_authenticated %}
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Smart Inventory</div>
+        <div class="brand-sub">Management System</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.index') }}"
+         class="nav-item {% if request.endpoint and request.endpoint.startswith('dashboard') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="{{ url_for('products.list_products') }}"
+         class="nav-item {% if request.endpoint and request.endpoint.startswith('products') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        Products
+      </a>
+
+      <a href="{{ url_for('expenses.list_expenses') }}"
+         class="nav-item {% if request.endpoint and request.endpoint.startswith('expenses') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <path d="M2 10h20"/>
+        </svg>
+        Expenses
+      </a>
+
+      {% if current_user.role == 'admin' %}
+      <a href="{{ url_for('reports.financial_summary') }}"
+         class="nav-item {% if request.endpoint and request.endpoint.startswith('reports') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+        </svg>
+        Reports
+      </a>
+
+      <a href="{{ url_for('auth.list_users') }}"
+         class="nav-item {% if request.endpoint and 'user' in (request.endpoint or '') %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Employees
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-theme-row">
+        <span class="sidebar-theme-label">Appearance</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg id="iconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+
+      <a href="{{ url_for('auth.logout') }}" class="nav-item logout-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </a>
+
+      <div class="user-profile">
+        <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+        <div>
+          <div class="user-name">{{ current_user.username }}</div>
+          <div class="user-role">{{ current_user.role | capitalize }}</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="main-content {% if not current_user.is_authenticated %}no-sidebar{% endif %}">
+
+    {% block flash_messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+              {{ message }}
+              <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+      <div class="modal-title">Confirm Delete</div>
+      <div class="modal-body" id="deleteModalMsg">Are you sure you want to delete this item? This cannot be undone.</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var html = document.documentElement;
+    var toggleBtn = document.getElementById('themeToggle');
+    var iconSun  = document.getElementById('iconSun');
+    var iconMoon = document.getElementById('iconMoon');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      if (iconSun && iconMoon) {
+        if (theme === 'dark') {
+          iconSun.style.display  = 'block';
+          iconMoon.style.display = 'none';
+        } else {
+          iconSun.style.display  = 'none';
+          iconMoon.style.display = 'block';
+        }
+      }
+    }
+
+    applyTheme(html.getAttribute('data-theme') || 'light');
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        var current = html.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+      });
+    }
+
+    document.querySelectorAll('.flash').forEach(function(flash) {
+      setTimeout(function() {
+        flash.classList.add('dismissing');
+        setTimeout(function() { flash.remove(); }, 360);
+      }, 4000);
+    });
+
+    document.querySelectorAll('form').forEach(function(form) {
+      form.addEventListener('submit', function() {
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn && !btn.classList.contains('no-loading')) {
+          btn.classList.add('loading');
+        }
+      });
+    });
+
+    window.addEventListener('load', function() {
+      document.querySelectorAll('.progress-fill').forEach(function(bar) {
+        var target = bar.style.width;
+        bar.style.width = '0%';
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { bar.style.width = target; });
+        });
+      });
+    });
+
+    var _deleteForm = null;
+
+    function confirmDelete(formEl, itemName) {
+      _deleteForm = formEl;
+      document.getElementById('deleteModalMsg').textContent =
+        'Are you sure you want to delete "' + itemName + '"? This cannot be undone.';
+      document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('active');
+      _deleteForm = null;
+    }
+
+    document.getElementById('deleteConfirmBtn').addEventListener('click', function() {
+      if (_deleteForm) { _deleteForm.submit(); }
+    });
+
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDeleteModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeDeleteModal();
+    });
+  </script>
+
+</body>
+</html>
