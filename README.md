@@ -50,6 +50,56 @@ This project was developed as part of the Software Engineering and Product Manag
 * Expense recording
 * Restricted from financial data
 
+## Sales Management (Sprint 4 Enhancement)
+
+### Overview
+
+A dedicated Sales module has been implemented to track product sales and improve financial accuracy. This feature reuses the existing `StockTransaction` model, avoiding unnecessary database complexity.
+
+### Key Functionalities
+
+* Record product sales with quantity and unit price
+* Automatic stock deduction on every sale
+* Role-based visibility:
+
+  * **Admin**: View all sales transactions
+  * **Staff**: View only their own sales
+* Real-time revenue tracking
+
+### Routes
+
+* `GET /sales/` — View sales transactions
+* `POST /sales/add` — Record a new sale
+
+### System Behavior
+
+* Sales are stored using `StockTransaction` with `txn_type = 'sale'`
+* Stock is automatically reduced (`change = -quantity`)
+* Unit price auto-fills from product but can be modified
+* Stock validation prevents overselling
+
+### UI Features
+
+* KPI Dashboard (Revenue, Units Sold, Transactions)
+* Sales entry form with product selection
+* Search and date filtering
+* Sortable table (client-side)
+
+### Integration with Reports
+
+* No changes required in reporting module
+* Reports automatically include sales data from `StockTransaction`
+* Profit and revenue calculations remain accurate
+
+### Design Decision
+
+Instead of introducing a new `Sale` model, the system reuses `StockTransaction` to:
+
+* Maintain a unified audit trail
+* Reduce redundancy
+* Keep database design simple and scalable
+
+
 ---
 
 ## Technology Stack
@@ -140,13 +190,7 @@ This project follows core Software Engineering and Product Management principles
 
 ---
 
-## Future Enhancements
 
-* Cloud deployment (AWS / Render)
-* PostgreSQL integration
-* Mobile application support
-* GST and invoice generation
-* Advanced analytics and forecasting
 
 ---
 

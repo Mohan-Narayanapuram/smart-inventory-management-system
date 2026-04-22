@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sales Log</h1>
+    <p class="page-subtitle">
+      {% if current_user.role == 'admin' %}
+        All sales across all staff members
+      {% else %}
+        Your personal sales log
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+{# ── KPI Strip ─────────────────────────────────────────────────────────── #}
+<div class="stats-grid" style="margin-bottom: var(--space-6);">
+  <div class="stat-card">
+    <div class="stat-label">Total Revenue (filtered)</div>
+    <div class="stat-value">₹{{ "{:,.2f}".format(total_revenue) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Units Sold (filtered)</div>
+    <div class="stat-value">{{ total_units }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Transactions (filtered)</div>
+    <div class="stat-value">{{ sales | length }}</div>
+  </div>
+</div>
+
+{# ── Log Sale Form ─────────────────────────────────────────────────────── #}
+<div class="card" style="margin-bottom: var(--space-6);">
+  <div class="card-header">
+    <h2 class="card-title">Log New Sale</h2>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('sales.add_sale') }}" class="form-inline-row">
+      <div class="form-group" style="flex:2; min-width:180px;">
+        <label for="product_id" class="form-label">Product</label>
+        <select name="product_id" id="product_id" class="form-control" required
+                onchange="fillPrice(this)">
+          <option value="">— Select product —</option>
+          {% for p in products %}
+            <option value="{{ p.id }}"
+                    data-price="{{ p.unit_price }}"
+                    data-stock="{{ p.stock }}">
+              {{ p.name }} (Stock: {{ p.stock }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group" style="flex:1; min-width:100px;">
+        <label for="quantity" class="form-label">Quantity</label>
+        <input type="number" name="quantity" id="quantity" class="form-control"
+               min="1" placeholder="Qty" required>
+      </div>
+
+      <div class="form-group" style="flex:1; min-width:130px;">
+        <label for="unit_price" class="form-label">Unit Price (₹)</label>
+        <input type="number" name="unit_price" id="unit_price" class="form-control"
+               min="0" step="0.01" placeholder="Auto-filled">
+      </div>
+
+      <div class="form-group" style="flex:0; align-self:flex-end;">
+        <button type="submit" class="btn btn-primary">Log Sale</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Filter Bar ───────────────────────────────────────────────────────── #}
+<div class="card" style="margin-bottom: var(--space-6);">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('sales.list_sales') }}" class="form-inline-row">
+      <div class="form-group" style="flex:2; min-width:180px;">
+        <label class="form-label">Search Product</label>
+        <input type="text" name="search" class="form-control"
+               placeholder="Product name…" value="{{ search }}">
+      </div>
+      <div class="form-group" style="flex:1; min-width:130px;">
+        <label class="form-label">From</label>
+        <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+      </div>
+      <div class="form-group" style="flex:1; min-width:130px;">
+        <label class="form-label">To</label>
+        <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+      </div>
+      <div class="form-group" style="flex:0; align-self:flex-end;">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a href="{{ url_for('sales.list_sales') }}" class="btn btn-ghost" style="margin-left:var(--space-2)">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ── Sales Table ──────────────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">
+      {% if current_user.role == 'admin' %}All Sales{% else %}Your Sales{% endif %}
+    </h2>
+  </div>
+  <div class="table-wrapper">
+    {% if sales %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="sortable" data-col="1">Product <span class="sort-icon"></span></th>
+          <th class="sortable" data-col="2">Qty <span class="sort-icon"></span></th>
+          <th class="sortable" data-col="3">Unit Price <span class="sort-icon"></span></th>
+          <th class="sortable" data-col="4">Total <span class="sort-icon"></span></th>
+          {% if current_user.role == 'admin' %}<th class="sortable" data-col="5">Staff <span class="sort-icon"></span></th>{% endif %}
+          <th>Date &amp; Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sales %}
+        <tr>
+          <td class="text-muted" style="font-size: 12px;">{{ s.id }}</td>
+          <td><strong>{{ s.product }}</strong></td>
+          <td>{{ s.quantity }}</td>
+          <td>₹{{ "{:,.2f}".format(s.unit_price) }}</td>
+          <td><strong>₹{{ "{:,.2f}".format(s.total) }}</strong></td>
+          {% if current_user.role == 'admin' %}
+            <td><span class="badge badge-info">{{ s.staff }}</span></td>
+          {% endif %}
+          <td class="text-muted" style="font-size: 12px;">
+            {{ s.timestamp.strftime('%d %b %Y, %I:%M %p') }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" class="empty-state-icon">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <h3>No sales found</h3>
+      <p>
+        {% if search or date_from or date_to %}
+          No sales match the current filters. Try clearing them.
+        {% else %}
+          Log your first sale using the form above.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function fillPrice(select) {
+    var opt = select.options[select.selectedIndex];
+    var price = opt.getAttribute("data-price");
+    var priceInput = document.getElementById("unit_price");
+    if (price) {
+      priceInput.value = parseFloat(price).toFixed(2);
+    } else {
+      priceInput.value = "";
+    }
+  }
+
+  (function () {
+    const tbody = document.querySelector('table tbody');
+    if (!tbody) return;
+
+    let sortCol = null, sortAsc = true;
+
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = parseInt(th.dataset.col);
+        if (sortCol === col) { sortAsc = !sortAsc; }
+        else { sortCol = col; sortAsc = true; }
+
+        document.querySelectorAll('th.sortable').forEach(t => t.classList.remove('asc', 'desc'));
+        th.classList.add(sortAsc ? 'asc' : 'desc');
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((a, b) => {
+          const aText = a.cells[col]?.innerText.trim() || '';
+          const bText = b.cells[col]?.innerText.trim() || '';
+          const aNum = parseFloat(aText.replace(/[₹,]/g, ''));
+          const bNum = parseFloat(bText.replace(/[₹,]/g, ''));
+          const aVal = isNaN(aNum) ? aText.toLowerCase() : aNum;
+          const bVal = isNaN(bNum) ? bText.toLowerCase() : bNum;
+          return sortAsc ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+        });
+
+        rows.forEach(r => tbody.appendChild(r));
+      });
+    });
+  })();
+</script>
+{% endblock %} 
