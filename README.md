@@ -152,9 +152,9 @@ This project follows core Software Engineering and Product Management principles
 
 ## Authors
 
-* Mohan Narayanapuram
-* Varun
 * D. Pujith Ram Reddy
+* Illa Varun Anjith
+* Mohan Narayanapuram 
 
 ---
 
